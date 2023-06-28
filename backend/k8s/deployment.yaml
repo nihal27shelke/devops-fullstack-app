@@ -1,0 +1,52 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: backend
+    environment: dev
+  annotations:
+  name: devops-backend
+  namespace: dev
+spec:
+  selector: 
+    matchLabels:
+      app: backend
+      environment: dev
+  replicas: 1
+  strategy:
+    rollingUpdate:
+      maxUnavailable: 33%
+      maxSurge: 50%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: backend
+        environment: dev        
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - devops-backend
+            topologyKey: "kubernetes.io/hostname"   
+      serviceAccountName: devops-backend
+      containers:
+      - name: devops-backend
+        image: 836855437023.dkr.ecr.ap-south-1.amazonaws.com/examplecode-ecr-repo:backend-latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+          name: api
+        resources:
+          requests:
+            cpu: 600m
+            memory: 1105Mi
+          limits:
+            cpu: 600m
+            memory: 1105Mi
